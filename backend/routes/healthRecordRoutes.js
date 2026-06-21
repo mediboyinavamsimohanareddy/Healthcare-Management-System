@@ -3,7 +3,14 @@ const router = express.Router();
 const healthRecordController = require('../controllers/healthRecordController');
 const auth = require('../middleware/auth');
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Multer Config
 const storage = multer.diskStorage({

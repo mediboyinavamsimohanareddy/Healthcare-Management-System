@@ -51,12 +51,12 @@ class _UserDashboardState extends State<UserDashboard> {
     final appointmentProvider = Provider.of<AppointmentProvider>(context);
     final user = userProvider.user;
     
-    final upcomingAppointment = appointmentProvider.appointments.firstWhere(
-      (ap) => ap.status == 'Pending',
-      orElse: () => appointmentProvider.appointments.isNotEmpty 
-          ? appointmentProvider.appointments.first 
-          : null as dynamic,
-    );
+    final pendingAppointments = appointmentProvider.appointments.where((ap) => ap.status == 'Pending');
+    final upcomingAppointment = pendingAppointments.isNotEmpty
+        ? pendingAppointments.first
+        : (appointmentProvider.appointments.isNotEmpty
+            ? appointmentProvider.appointments.first
+            : null);
 
     return Container(
         decoration: BoxDecoration(

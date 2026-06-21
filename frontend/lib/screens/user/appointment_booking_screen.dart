@@ -24,13 +24,25 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
     final timeStr = _selectedTime.format(context);
     final token = Provider.of<AuthProvider>(context, listen: false).token;
 
-    final success = await Provider.of<AppointmentProvider>(context, listen: false)
-        .bookAppointment(token!, widget.doctor.id, widget.doctor.name, dateStr, timeStr);
+    bool success = false;
+    try {
+      success = await Provider.of<AppointmentProvider>(context, listen: false)
+          .bookAppointment(token!, widget.doctor.id, widget.doctor.name, dateStr, timeStr);
+    } catch (e) {
+      debugPrint("Book Appointment UI Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
 
-    setState(() => _isLoading = false);
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment Booked!')));
-      Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment Booked!')));
+        Navigator.pop(context);
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to book appointment.')));
+      }
     }
   }
 

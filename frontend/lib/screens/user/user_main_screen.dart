@@ -23,6 +23,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
+      if (!mounted) return;
       final token = Provider.of<AuthProvider>(context, listen: false).token;
       Provider.of<UserProvider>(context, listen: false).fetchProfile(token!);
     });

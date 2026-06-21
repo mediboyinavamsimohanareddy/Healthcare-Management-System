@@ -2,24 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
-import 'register_screen.dart';
-import 'forgot_password_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'users';
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  void _login() async {
+  void _resetPassword() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields.')),
@@ -27,27 +24,40 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    
+
     bool success = false;
     try {
       success = await Provider.of<AuthProvider>(context, listen: false)
-          .login(_emailController.text.trim(), _passwordController.text.trim(), _selectedRole);
+          .resetPassword(_emailController.text.trim(), _passwordController.text.trim());
     } catch (e) {
-      debugPrint("Login UI Error: $e");
+      debugPrint("Reset Password UI Error: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-    
-    if (mounted && !success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.red.shade400,
-          content: Text(
-            'Login Failed! Check your credentials or connection.',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF00BFA5),
+            content: Text(
+              'Password reset successful! Please login.',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+            ),
           ),
-        ),
-      );
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade400,
+            content: Text(
+              'Reset Failed! User not found or connection error.',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -67,11 +77,25 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Icon & Branding
+                // Back Button
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Header
                 Row(
                   children: [
                     Container(
@@ -80,40 +104,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Colors.white.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.health_and_safety, color: Colors.white, size: 30),
+                      child: const Icon(Icons.lock_reset, color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 12),
                     Text(
                       'MediCare',
                       style: GoogleFonts.poppins(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        letterSpacing: 1,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
                 Text(
-                  'Welcome Back 👋',
+                  'Reset Password 🔑',
                   style: GoogleFonts.poppins(
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  'Sign in to continue your healthcare journey',
+                  'Enter your email and new password',
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 28),
 
-                // Card with form fields
+                // Form Card
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -167,9 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password Field
+                      // New Password Field
                       Text(
-                        'Password',
+                        'New Password',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -182,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: _obscurePassword,
                         style: GoogleFonts.poppins(fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Enter your password',
+                          hintText: 'Enter your new password',
                           hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400, fontSize: 13),
                           prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF00BFA5)),
                           suffixIcon: IconButton(
@@ -210,93 +233,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Forgot Password?',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF00BFA5),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Role Selector
-                      Text(
-                        'Login As',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: const Color(0xFF374151),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedRole,
-                        style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1E293B)),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'users',
-                            child: Row(children: [
-                              const Icon(Icons.person_outline, color: Color(0xFF00BFA5), size: 18),
-                              const SizedBox(width: 8),
-                              Text('Patient', style: GoogleFonts.poppins()),
-                            ]),
-                          ),
-                          DropdownMenuItem(
-                            value: 'doctors',
-                            child: Row(children: [
-                              const Icon(Icons.medical_services_outlined, color: Color(0xFF2979FF), size: 18),
-                              const SizedBox(width: 8),
-                              Text('Doctor', style: GoogleFonts.poppins()),
-                            ]),
-                          ),
-                          DropdownMenuItem(
-                            value: 'admin',
-                            child: Row(children: [
-                              const Icon(Icons.admin_panel_settings_outlined, color: Colors.orange, size: 18),
-                              const SizedBox(width: 8),
-                              Text('Admin', style: GoogleFonts.poppins()),
-                            ]),
-                          ),
-                        ],
-                        onChanged: (val) => setState(() => _selectedRole = val!),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF00BFA5), width: 2),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                        ),
-                      ),
                       const SizedBox(height: 28),
 
-                      // Login Button
+                      // Reset Button
                       _isLoading
                           ? const Center(
                               child: CircularProgressIndicator(color: Color(0xFF00BFA5)),
@@ -305,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: _login,
+                                onPressed: _resetPassword,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF00BFA5),
                                   foregroundColor: Colors.white,
@@ -315,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   elevation: 0,
                                 ),
                                 child: Text(
-                                  'Sign In',
+                                  'Reset Password',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -324,37 +263,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-                // Register Link
-                Center(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                    ),
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Don't have an account? ",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 13,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Register here',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

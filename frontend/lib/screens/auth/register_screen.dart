@@ -29,13 +29,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    final success = await Provider.of<AuthProvider>(context, listen: false).register(
-      _nameController.text.trim(),
-      _emailController.text.trim(),
-      _phoneController.text.trim(),
-      _passwordController.text.trim(),
-    );
-    if (mounted) setState(() => _isLoading = false);
+    
+    bool success = false;
+    try {
+      success = await Provider.of<AuthProvider>(context, listen: false).register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _phoneController.text.trim(),
+        _passwordController.text.trim(),
+      );
+    } catch (e) {
+      debugPrint("Register UI Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+    
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -53,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SnackBar(
             backgroundColor: Colors.red.shade400,
             content: Text(
-              'Registration Failed! Email may already exist.',
+              'Registration Failed! Check your connection or email may already exist.',
               style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
             ),
           ),
@@ -67,7 +75,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String label,
     required String hint,
     required IconData icon,
-    bool obscure = false,
     bool isPassword = false,
     TextInputType? keyboardType,
   }) {

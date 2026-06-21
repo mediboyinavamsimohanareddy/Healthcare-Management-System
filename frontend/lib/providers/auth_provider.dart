@@ -14,40 +14,65 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _token != null;
 
   Future<bool> login(String email, String password, String type) async {
-    final response = await http.post(
-      Uri.parse('${AppConstants.baseUrl}/$type/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/$type/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': password}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      _token = data['token'];
-      _role = type == 'admin' ? 'admin' : (type == 'doctors' ? 'doctor' : 'user');
-      
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('role', _role!);
-      
-      notifyListeners();
-      return true;
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        _token = data['token'];
+        _role = type == 'admin' ? 'admin' : (type == 'doctors' ? 'doctor' : 'user');
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('role', _role!);
+        
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Login Error: $e");
+      return false;
     }
-    return false;
   }
 
   Future<bool> register(String name, String email, String phone, String password) async {
-    final response = await http.post(
-      Uri.parse('${AppConstants.baseUrl}/users/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'password': password,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/users/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+        }),
+      );
 
-    return response.statusCode == 200;
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Register Error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/users/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'newPassword': newPassword}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Reset Password Error: $e");
+      return false;
+    }
   }
 
   Future<void> logout() async {

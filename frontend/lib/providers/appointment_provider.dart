@@ -9,48 +9,61 @@ class AppointmentProvider with ChangeNotifier {
   List<AppointmentModel> get appointments => _appointments;
 
   Future<void> fetchUserAppointments(String token) async {
-    final response = await http.get(
-      Uri.parse('${AppConstants.baseUrl}/appointments/user'),
-      headers: {'x-auth-token': token},
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/appointments/user'),
+        headers: {'x-auth-token': token},
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List;
-      _appointments = data.map((json) => AppointmentModel.fromJson(json)).toList();
-      notifyListeners();
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        _appointments = data.map((json) => AppointmentModel.fromJson(json)).toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Fetch Appointments Error: $e");
     }
   }
 
   Future<bool> bookAppointment(String token, String doctorId, String doctorName, String date, String time) async {
-    final response = await http.post(
-      Uri.parse('${AppConstants.baseUrl}/appointments/book'),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': token,
-      },
-      body: json.encode({
-        'doctorId': doctorId,
-        'doctorName': doctorName,
-        'date': date,
-        'time': time,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/appointments/book'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: json.encode({
+          'doctorId': doctorId,
+          'doctorName': doctorName,
+          'date': date,
+          'time': time,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      fetchUserAppointments(token);
-      return true;
+      if (response.statusCode == 200) {
+        fetchUserAppointments(token);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Book Appointment Error: $e");
+      return false;
     }
-    return false;
   }
 
   Future<void> cancelAppointment(String token, String appointmentId) async {
-    final response = await http.put(
-      Uri.parse('${AppConstants.baseUrl}/appointments/cancel/$appointmentId'),
-      headers: {'x-auth-token': token},
-    );
+    try {
+      final response = await http.put(
+        Uri.parse('${AppConstants.baseUrl}/appointments/cancel/$appointmentId'),
+        headers: {'x-auth-token': token},
+      );
 
-    if (response.statusCode == 200) {
-      fetchUserAppointments(token);
+      if (response.statusCode == 200) {
+        fetchUserAppointments(token);
+      }
+    } catch (e) {
+      debugPrint("Cancel Appointment Error: $e");
     }
   }
 }

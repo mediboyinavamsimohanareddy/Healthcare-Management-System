@@ -34,8 +34,12 @@ class HealthRecordProvider with ChangeNotifier {
 
     var response = await request.send();
     if (response.statusCode == 200) {
-      fetchUserRecords(token);
+      await fetchUserRecords(token);
       return true;
+    } else {
+      debugPrint('Failed to upload. Status: ${response.statusCode}');
+      final respStr = await response.stream.bytesToString();
+      debugPrint('Response: $respStr');
     }
     return false;
   }

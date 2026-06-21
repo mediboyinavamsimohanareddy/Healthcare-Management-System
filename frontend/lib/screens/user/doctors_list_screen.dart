@@ -18,6 +18,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
+      if (!mounted) return;
       Provider.of<DoctorProvider>(context, listen: false).fetchDoctors();
     });
   }
